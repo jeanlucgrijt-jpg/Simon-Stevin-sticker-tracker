@@ -10,4 +10,9 @@ It is important to link the image in our database via a ID but there is no need 
 Example: 
         <meta property="og:image" content="https://congressus-simonstev.s3-eu-west-1.amazonaws.com/files/03fd5f07a95549f28e7121e0a65ab614.png"/>
 
+To view SQLlite3 DB use the following:
+
+Choose your own install: https://sqlitebrowser.org/dl/
+portable install: https://github.com/sqlitebrowser/sqlitebrowser/releases/download/v3.13.1/SQLiteDatabaseBrowserPortable_3.13.1.paf.exe
+
 ----------------------------- Important image info -----------------------------
