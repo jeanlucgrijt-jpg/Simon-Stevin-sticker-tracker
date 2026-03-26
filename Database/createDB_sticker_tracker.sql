@@ -1,6 +1,3 @@
-CREATE DATABASE sticker_tracker;
-USE sticker_tracker;
-
 CREATE TABLE sticker_data (
     photo_id VARCHAR(100),
     user_id  VARCHAR(50), 
