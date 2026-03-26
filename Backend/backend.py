@@ -6,14 +6,14 @@ base_dir = Path(__file__).parent
 database_dir = base_dir.parent / "Database"
 db_path = database_dir / "Simon_Stevin_sticker_tracker.db"
 
-current_user_id = "user123"
+current_user_id = "ReAcCie 25-26 VO" #numbers
 current_latitude = 51.451
 current_longitude = 5.481
 current_date_picture = "2026-03-26"
 current_date_uploaded = "2026-03-26"
-current_committee = "media"
-current_title = "Campus Event"
-current_description = "Picture taken during event"
+current_committee = "ReAcCie 25-26"
+current_title = "Luna sticker muur plafond"
+current_description = "Midwinterbroai VO"
 
 def insert(db_path):
     connection = sqlite3.connect(db_path)
@@ -44,3 +44,6 @@ def insert(db_path):
     connection.commit()
     connection.close()
     return
+
+insert(db_path)
+print("done")
