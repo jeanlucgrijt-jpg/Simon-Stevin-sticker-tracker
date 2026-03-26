@@ -13,12 +13,12 @@ cursor = connection.cursor()
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS sticker_data (
     photo_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id VARCHAR(50),
+    user_id INTEGER,
     latitude DECIMAL(9,6),
     longitude DECIMAL(9,6),
     date_picture DATE,
-    date_uploaded DATE,
-    committee VARCHAR(50),
+    date_uploaded DATETIME,
+    sticker_id VARCHAR(50),
     title VARCHAR(50),
     description TEXT           
                
