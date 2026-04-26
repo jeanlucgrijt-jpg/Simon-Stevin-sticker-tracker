@@ -2,7 +2,7 @@
 Simon Stevin sticker tracker made by ReAcCie with help from WebCie
 -ReAcCie25-26 "Unsinkable"
 
------------------------------ Important image info -----------------------------
+----------------------------- Important DB info -----------------------------
 
 To view SQLlite3 DB use the following:
 
