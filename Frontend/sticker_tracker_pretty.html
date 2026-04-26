@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Sticker Submission Form</title>
+    <title>Simon stevin sticker tracker</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -36,10 +36,70 @@
 
 <h2>Submit Sticker Data</h2>
 
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sticker Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: 40px auto;
+        }
+        label {
+            display: block;
+            margin-top: 15px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Submit Sticker</h2>
+
+<form>
+
+```
+<label>Latitude</label>
+<input type="number" step="0.000001" name="latitude">
+
+<label>Longitude</label>
+<input type="number" step="0.000001" name="longitude">
+
+<label>Date Picture Taken</label>
+<input type="date" name="date_picture">
+
+<label>Sticker ID</label>
+<input type="text" name="sticker_id" maxlength="15">
+
+<label>Title</label>
+<input type="text" name="title" maxlength="50">
+
+<label>Description</label>
+<textarea name="description"></textarea>
+
+<button type="submit">Submit</button>
+```
+
+</form>
+
+</body>
+</html>
+
 
 <img class="clickable" id="testsubmit" src="../pictures_site/test.png" alt="FC Utrecht best club van de wereld">
 
-<script src="../Backend/sticker_tracker_main.js"></script>
+<script src="../Frontend/sticker_tracker_main.js"></script>
 
 </body>
 </html>
