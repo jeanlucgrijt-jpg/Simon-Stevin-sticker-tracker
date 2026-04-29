@@ -1,0 +1,26 @@
+{
+  "name": "simon-stevin-sticker-tracker",
+  "version": "1.0.0",
+  "description": "Simon Stevin sticker tracker made by ReAcCie with help from WebCie\r -ReAcCie25-26 \"Unsinkable\"",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jeanlucgrijt-jpg/Simon-Stevin-sticker-tracker.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/jeanlucgrijt-jpg/Simon-Stevin-sticker-tracker/issues"
+  },
+  "homepage": "https://github.com/jeanlucgrijt-jpg/Simon-Stevin-sticker-tracker#readme",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "sqlite3": "^6.0.1"
+  }
+}
