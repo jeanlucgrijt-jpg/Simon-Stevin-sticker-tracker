@@ -7,7 +7,7 @@ class stickerData(db.Model):
     longitude = db.Column(db.Numeric(9,6), unique=False, nullable=False)
     date_picture = db.Column(db.Date, unique=False, nullable=True)
     date_uploaded = db.Column(db.DateTime, unique=False, nullable=False)
-    sticker_id = db.Column(db.String(50),db.ForeignKey('committeeData.sticker_id'), unique=False, nullable=False)
+    sticker_id = db.Column(db.String(50), unique=False, nullable=False)
     title = db.Column(db.String(50), unique=False, nullable=True)
     description = db.Column(db.Text, unique=False, nullable=True)
 
@@ -25,7 +25,7 @@ class stickerData(db.Model):
         }
     
 class committeeData(db.Model):
-    sticker_id = db.Column(db.String(50), primary_key=True)
+    sticker_id = db.Column(db.String(50), db.ForeignKey('sticker_data.sticker_id'), primary_key=True)
     sticker_name = db.Column(db.String(50), unique=False, nullable=False)
     sticker_description = db.Column(db.String(50), unique=False, nullable=True)
     sticker_date = db.Column(db.Date, unique=False, nullable=True)
@@ -47,7 +47,7 @@ class committeeData(db.Model):
         }
     
 class photoData(db.Model):
-    photo_id = db.Column(db.Integer, db.ForeignKey('stickerData.photo_id'), primary_key=True)
+    photo_id = db.Column(db.Integer, db.ForeignKey('sticker_data.photo_id'), primary_key=True)
     image_path = db.Column(db.String(255), nullable=False)
     
     def to_json_photoData(self):
