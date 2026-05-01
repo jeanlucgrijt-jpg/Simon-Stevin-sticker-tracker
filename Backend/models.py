@@ -25,12 +25,12 @@ class stickerData(db.Model):
         }
     
 class committeeData(db.Model):
-    sticker_id = db.Column(db.String(50), db.ForgeinKey('stickerData.sticker_id'))
+    sticker_id = db.Column(db.String(50), primary_key=True)
     sticker_name = db.Column(db.String(50), unique=False, nullable=False)
     sticker_description = db.Column(db.String(50), unique=False, nullable=True)
     sticker_date = db.Column(db.Date, unique=False, nullable=True)
     committee_members = db.Column(db.Text, unique=False, nullable=False)
-    committe_leus = db.Column(db.String(50), unique=False, Nullable=False)
+    committe_leus = db.Column(db.String(50), unique=False, nullable=False)
     committee_rubric = db.Column(db.Text, unique=False, nullable=True)
     lustrum = db.Column(db.Boolean, unique=False, nullable=False)
 
@@ -47,7 +47,7 @@ class committeeData(db.Model):
         }
     
 class photoData(db.Model):
-    photo_id = db.Column(db.Integer, db.ForeignKey('stickerData.photo_id'))
+    photo_id = db.Column(db.Integer, db.ForeignKey('stickerData.photo_id'), primary_key=True)
     image_path = db.Column(db.String(255), nullable=False)
     
     def to_json_photoData(self):
