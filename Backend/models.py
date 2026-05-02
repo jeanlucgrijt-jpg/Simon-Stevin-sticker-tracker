@@ -1,5 +1,9 @@
 from config import db
 
+
+
+#--------------------------      Sticker data         -------------------------
+
 class stickerData(db.Model):
     photo_id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, unique=False, nullable=False)
@@ -24,6 +28,12 @@ class stickerData(db.Model):
             "description": self.description,
         }
     
+#--------------------------      Sticker data         -------------------------
+
+
+
+#--------------------------      Committee data       -------------------------
+    
 class committeeData(db.Model):
     sticker_id = db.Column(db.String(50), db.ForeignKey('sticker_data.sticker_id'), primary_key=True)
     sticker_name = db.Column(db.String(50), unique=False, nullable=False)
@@ -45,6 +55,12 @@ class committeeData(db.Model):
             "committeeRubric": self.committee_rubric,
             "lustrum": self.lustrum,
         }
+
+#--------------------------      Committee data       -------------------------
+
+
+
+#--------------------------         Photo data        -------------------------
     
 class photoData(db.Model):
     photo_id = db.Column(db.Integer, db.ForeignKey('sticker_data.photo_id'), primary_key=True)
@@ -55,3 +71,5 @@ class photoData(db.Model):
             "photoId": self.photo_id,
             "imagePath": self.image_path,
         }
+    
+#--------------------------         Photo data         -------------------------
