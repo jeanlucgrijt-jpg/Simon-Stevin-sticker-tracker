@@ -31,15 +31,33 @@ def get_photoData():
 
 @app.route("/upload_sticker", methods=["POST"])
 def upload_sticker():
-    user_id = 
-    latitude = 
-    longitude = 
-    date_picture = 
-    date_uploaded = 
-    sticker_id = 
-    title = 
-    description =
-    image_path =
+    user_id = request.json.get("userId")
+    latitude = request.json.get("latitude")
+    longitude = request.json.get("longitude")
+    date_picture = request.json.get("datePicture")
+    sticker_id = request.json.get("stickerId")
+    title = request.json.get("title")
+    description = request.json.get("description")
+
+    if not latitude or not longitude or not sticker_id:
+        return (jsonify({"message": "You must include a location and a sticker type"}), 
+        400,
+        )
+    new_sticker = stickerData(
+        user_id=user_id, 
+        latitude=latitude, 
+        longitude=longitude, 
+        date_picture=date_picture, 
+        title=title, 
+        description=description
+    )
+    try:
+        db.session.add(new_sticker)
+        db.session.commit()
+    except Exception as e:
+        return jsonify({"message": str(e)}), 400
+    
+    return jsonify({"message": "sticker added!"}), 201
 
 #--------------------------      POST functions      -------------------------
 
