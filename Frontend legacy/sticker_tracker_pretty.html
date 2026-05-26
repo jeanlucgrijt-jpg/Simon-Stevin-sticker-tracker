@@ -1,70 +1,250 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Simon stevin sticker tracker</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: 40px auto;
-        }
-        label {
-            display: block;
-            margin-top: 15px;
-            font-weight: bold;
-        }
-        input, textarea {
-            width: 100%;
-            padding: 8px;
-            margin-top: 5px;
-        }
-        button {
-            margin-top: 20px;
-            padding: 10px 15px;
-        }
-        .clickable {
-            cursor: pointer;
-            width: 200px;
-        }
-        .map_preview {
-            width: 100px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <title>Simon Stevin Sticker Tracker</title>
+
+  <!-- OpenLayers CSS -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/ol@latest/ol.css"
+  />
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 900px;
+      margin: 20px auto;
+    }
+
+    .map {
+      width: 100%;
+      height: 500px;
+      border: 2px solid #ccc;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      box-sizing: border-box;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 10px 15px;
+      cursor: pointer;
+    }
+
+    .clickable {
+      cursor: pointer;
+      width: 150px;
+      margin-top: 20px;
+    }
+  </style>
 </head>
+
 <body>
 
-<h2>Submit Sticker Data</h2>
+  <h1>Simon Stevin Sticker Tracker</h1>
 
-<form id="stickerform">
+  <!-- MAP -->
+  <div id="map" class="map"></div>
 
-```
-<label>Latitude</label>
-<input type="number" step="0.000001" name="latitude">
+  <button id="zoom-out">Zoom out</button>
+  <button id="zoom-in">Zoom in</button>
 
-<label>Longitude</label>
-<input type="number" step="0.000001" name="longitude">
+  <h2>Add Sticker</h2>
 
-<label>Date Picture Taken</label>
-<input type="date" name="date_picture">
+  <!-- FORM -->
+  <form id="stickerForm">
 
-<label>Sticker ID</label>
-<input type="text" name="sticker_id" maxlength="15">
+    <label>Latitude</label>
+    <input type="number" step="0.000001" name="latitude" required>
 
-<label>Title</label>
-<input type="text" name="title" maxlength="50">
+    <label>Longitude</label>
+    <input type="number" step="0.000001" name="longitude" required>
 
-<label>Description</label>
-<textarea name="description"></textarea>
+    <label>Date Picture Taken</label>
+    <input type="date" name="date_picture">
 
-<button type="submit">Submit</button>
-```
+    <label>Sticker ID</label>
+    <input type="text" name="sticker_id" maxlength="15">
 
-</form>
+    <label>Title</label>
+    <input type="text" name="title" maxlength="50">
 
-<img class="clickable" id="testsubmit" src="../pictures_site/test.png" alt="FC Utrecht best club van de wereld">
+    <label>Description</label>
+    <textarea name="description"></textarea>
 
-<script src="../Frontend/sticker_tracker_main.js"></script>
+    <button type="submit">Submit Sticker</button>
+  </form>
+
+  <img
+    class="clickable"
+    id="testsubmit"
+    src="../pictures_site/test.png"
+    alt="test button"
+  />
+
+  <!-- OPENLAYERS SCRIPT -->
+  <script type="module">
+
+    import Map from 'https://cdn.jsdelivr.net/npm/ol@latest/Map.js';
+    import View from 'https://cdn.jsdelivr.net/npm/ol@latest/View.js';
+    import TileLayer from 'https://cdn.jsdelivr.net/npm/ol@latest/layer/Tile.js';
+    import OSM from 'https://cdn.jsdelivr.net/npm/ol@latest/source/OSM.js';
+
+    import VectorLayer from 'https://cdn.jsdelivr.net/npm/ol@latest/layer/Vector.js';
+    import VectorSource from 'https://cdn.jsdelivr.net/npm/ol@latest/source/Vector.js';
+
+    import Feature from 'https://cdn.jsdelivr.net/npm/ol@latest/Feature.js';
+    import Point from 'https://cdn.jsdelivr.net/npm/ol@latest/geom/Point.js';
+
+    import { fromLonLat } from 'https://cdn.jsdelivr.net/npm/ol@latest/proj.js';
+
+    import Style from 'https://cdn.jsdelivr.net/npm/ol@latest/style/Style.js';
+    import CircleStyle from 'https://cdn.jsdelivr.net/npm/ol@latest/style/Circle.js';
+    import Fill from 'https://cdn.jsdelivr.net/npm/ol@latest/style/Fill.js';
+
+    // =========================
+    // STICKER STORAGE
+    // =========================
+    const stickerSource = new VectorSource();
+
+    // =========================
+    // STICKER LAYER
+    // =========================
+    const stickerLayer = new VectorLayer({
+      source: stickerSource,
+    });
+
+    // =========================
+    // MAP SETUP
+    // =========================
+    const map = new Map({
+      target: 'map',
+
+      layers: [
+        new TileLayer({
+          source: new OSM(),
+        }),
+
+        stickerLayer,
+      ],
+
+      view: new View({
+        center: fromLonLat([5, 52]),
+        zoom: 4,
+      }),
+    });
+
+    // =========================
+    // ADD STICKER FUNCTION
+    // =========================
+    function addSticker(lat, lon, title) {
+
+      const feature = new Feature({
+        geometry: new Point(
+          fromLonLat([lon, lat])
+        ),
+      });
+
+      feature.setStyle(
+        new Style({
+          image: new CircleStyle({
+            radius: 7,
+
+            fill: new Fill({
+              color: 'red',
+            }),
+          }),
+        })
+      );
+
+      stickerSource.addFeature(feature);
+
+      console.log("Sticker added:", title);
+    }
+
+    // =========================
+    // ZOOM BUTTONS
+    // =========================
+    document.getElementById("zoom-in").onclick = () => {
+      const view = map.getView();
+      view.setZoom(view.getZoom() + 1);
+    };
+
+    document.getElementById("zoom-out").onclick = () => {
+      const view = map.getView();
+      view.setZoom(view.getZoom() - 1);
+    };
+
+    // =========================
+    // TEST BUTTON
+    // =========================
+    document.getElementById("testsubmit")
+      .addEventListener("click", () => {
+        console.log("FC Utrecht de beste");
+      });
+
+    // =========================
+    // FORM SUBMIT
+    // =========================
+    document.getElementById("stickerForm")
+      .addEventListener("submit", async function (e) {
+
+        e.preventDefault();
+
+        const formData = new FormData(this);
+
+        const data = Object.fromEntries(
+          formData.entries()
+        );
+
+        const lat = parseFloat(data.latitude);
+        const lon = parseFloat(data.longitude);
+
+        // Add marker instantly
+        addSticker(lat, lon, data.title);
+
+        // OPTIONAL backend request
+        try {
+
+          const response = await fetch(
+            "http://localhost:3000/submit",
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type": "application/json"
+              },
+
+              body: JSON.stringify(data)
+            }
+          );
+
+          const result = await response.json();
+
+          console.log("Server response:", result);
+
+        } catch (error) {
+
+          console.error("Backend error:", error);
+
+        }
+
+      });
+
+  </script>
 
 </body>
 </html>

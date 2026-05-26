@@ -15,9 +15,7 @@ portable install: https://github.com/sqlitebrowser/sqlitebrowser/releases/downlo
 
 ----------------------------- Questions for next meeting -----------------------------
 
-- Pictures for now local, should we keep the website pictures and sticker pictures seperate (?)
-- Should the pictures for the constant things be on congressus or also on the local server (?)
-- Set picture sizes or scaleable?
-
-
+- GUID for pictures
+- rev proxy
+- .png check
 ----------------------------- Questions for next meeting -----------------------------
