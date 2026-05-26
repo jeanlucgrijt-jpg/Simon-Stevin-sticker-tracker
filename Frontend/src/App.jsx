@@ -1,60 +1,28 @@
-import React, { useState } from 'react'
+import { useState, useEffect } from 'react'
+import StickerList from './StickersList'
+import StickerForm from './StickerForm'
 import './App.css'
-import StickerMap from './components/StickerMap'
-import LocationExtractor from './components/LocationExtractor'
-import StickerSelector from './components/StickerSelector'
 
 function App() {
-  const [activeTab, setActiveTab] = useState('map')
+  const [stickers, setStickers] = useState([])
 
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'map':
-        return <StickerMap />
-      case 'extractor':
-        return <LocationExtractor />
-      case 'selector':
-        return <StickerSelector />
-      default:
-        return <StickerMap />
-    }
-  }
+  useEffect(() => {
+    fetchStickers()
+  }, []);
 
-  return (
-    <div className="dashboard-container">
-      <nav className="dashboard-nav">
-        <div className="nav-brand">
-          <div className="brand-icon">🗺️</div>
-          Simon Stevin Sticker Tracker
-        </div>
-        
-        <div className="nav-tabs">
-          <button 
-            className={`nav-tab ${activeTab === 'map' ? 'active' : ''}`}
-            onClick={() => setActiveTab('map')}
-          >
-            📍 Map
-          </button>
-          <button 
-            className={`nav-tab ${activeTab === 'extractor' ? 'active' : ''}`}
-            onClick={() => setActiveTab('extractor')}
-          >
-            📷 GPS Extractor
-          </button>
-          <button 
-            className={`nav-tab ${activeTab === 'selector' ? 'active' : ''}`}
-            onClick={() => setActiveTab('selector')}
-          >
-            🏷️ Committee Selector
-          </button>
-        </div>
-      </nav>
+  const fetchStickers = async () => {
+    const response = await fetch("http://127.0.0.1:5000/stickerData");
+    const data = await response.json();
+    setStickers(data.stickerData);
+    console.log(data.stickerData);
+  };
 
-      <main className="dashboard-content">
-        {renderContent()}
-      </main>
-    </div>
-  )
+  return ( 
+    <>
+      <StickerList stickers={stickers} />
+      <StickerForm />
+    </>
+  );
 }
 
-export default App
+export default App;
