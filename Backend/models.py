@@ -8,9 +8,9 @@ from datetime import datetime
 class stickerData(db.Model):
     photo_id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, unique=False, nullable=False)
-    latitude = db.Column(db.Numeric(9,6), unique=False, nullable=False)
-    longitude = db.Column(db.Numeric(9,6), unique=False, nullable=False)
-    date_picture = db.Column(db.Date, unique=False, nullable=True)
+    latitude = db.Column(db.String(50), unique=False, nullable=False)
+    longitude = db.Column(db.String(50), unique=False, nullable=False)
+    date_picture = db.Column(db.String(50), unique=False, nullable=True)
     date_uploaded = db.Column(db.DateTime, nullable=False, default=datetime.now())
     sticker_id = db.Column(db.String(50), unique=False, nullable=False)
     title = db.Column(db.String(50), unique=False, nullable=True)
