@@ -14,7 +14,7 @@ class stickerData(db.Model):
     date_uploaded = db.Column(db.DateTime, nullable=False, default=datetime.now())
     sticker_id = db.Column(db.String(50), unique=False, nullable=False)
     title = db.Column(db.String(50), unique=False, nullable=True)
-    description = db.Column(db.Text, unique=False, nullable=True)
+    description = db.Column(db.String(255), unique=False, nullable=True)
 
     def to_json_stickerData(self):
         return{
@@ -40,9 +40,9 @@ class committeeData(db.Model):
     sticker_name = db.Column(db.String(50), unique=False, nullable=False)
     sticker_description = db.Column(db.String(50), unique=False, nullable=True)
     sticker_date = db.Column(db.Date, unique=False, nullable=True)
-    committee_members = db.Column(db.Text, unique=False, nullable=False)
+    committee_members = db.Column(db.String(255), unique=False, nullable=False)
     committe_leus = db.Column(db.String(50), unique=False, nullable=False)
-    committee_rubric = db.Column(db.Text, unique=False, nullable=True)
+    committee_rubric = db.Column(db.String(255), unique=False, nullable=True)
     lustrum = db.Column(db.Boolean, unique=False, nullable=False)
 
     def to_json_committeeData(self):

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import StickerList from './StickersList'
 import StickerForm from './StickerForm'
+import StickerTracker from './StickerMap'
 import './App.css'
 
 function App() {
@@ -19,8 +20,9 @@ function App() {
 
   return ( 
     <>
-      <StickerList stickers={stickers} />
-      <StickerForm />
+      {/* <StickerList stickers={stickers} />
+      <StickerForm /> */}
+      <StickerTracker/>
     </>
   );
 }
