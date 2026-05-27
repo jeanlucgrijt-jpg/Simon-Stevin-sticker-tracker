@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import "./StickerMap.css";
 
 import "ol/ol.css";
+
 import Map from "ol/Map";
 import View from "ol/View";
 import Overlay from "ol/Overlay";
@@ -22,20 +23,20 @@ import Fill from "ol/style/Fill";
 import Stroke from "ol/style/Stroke";
 import CircleStyle from "ol/style/Circle";
 
-
+import testImage from "../../pictures_site/test.png";
 
 const StickerTracker = () => {
   const mapRef = useRef(null);
-  const locationMapRef = useRef(null);  
+  const locationMapRef = useRef(null);
+
   const [sortOpen, setSortOpen] = useState(false);
-  const [activeOverlay, setActiveOverlay] = useState(null);
-
-
   useEffect(() => {
     let selectedCoordinates = [5.4697, 51.4416];
     let selectedStickerType = "Logo A";
 
-    /* ================= MAIN MAP ================= */
+    /* ===================================================== */
+    /* MAIN MAP */
+    /* ===================================================== */
 
     const stickerSource = new VectorSource();
 
@@ -46,7 +47,9 @@ const StickerTracker = () => {
     const map = new Map({
       target: mapRef.current,
       layers: [
-        new TileLayer({ source: new OSM() }),
+        new TileLayer({
+          source: new OSM(),
+        }),
         stickerLayer,
       ],
       view: new View({
@@ -65,6 +68,10 @@ const StickerTracker = () => {
 
     const popupContent = document.getElementById("popupContent");
 
+    /* ===================================================== */
+    /* CREATE STICKER FEATURE */
+    /* ===================================================== */
+
     function createStickerFeature(data) {
       const feature = new Feature({
         geometry: new Point(
@@ -77,7 +84,9 @@ const StickerTracker = () => {
         new Style({
           image: new CircleStyle({
             radius: 8,
-            fill: new Fill({ color: "#38bdf8" }),
+            fill: new Fill({
+              color: "#38bdf8",
+            }),
             stroke: new Stroke({
               color: "#ffffff",
               width: 2,
@@ -89,27 +98,97 @@ const StickerTracker = () => {
       stickerSource.addFeature(feature);
     }
 
-    /* Example sticker */
-    createStickerFeature({
-      title: "Sample Sticker",
-      description: "Example sticker popup.",
-      stickerId: "Logo A",
-      image:
-        "https://upload.wikimedia.org/wikipedia/commons/3/3f/Placeholder_view_vector.svg",
-      detailDescription: "Detailed sticker information.",
-      year: "2026",
-      members: "Member A, Member B",
-      leus: "Placeholder leus",
-      rubric: "Placeholder rubric",
-      coordinates: [5.4697, 51.4416],
-    });
+    /* ===================================================== */
+    /* LOAD STICKERS FROM DATABASE */
+    /* ===================================================== */
 
-    /* ================= CLICK ================= */
+    async function loadStickersFromDatabase() {
+      try {
+        const stickerResponse = await fetch(
+          "http://127.0.0.1:5000/stickerData"
+        );
+
+        const committeeResponse = await fetch(
+          "http://127.0.0.1:5000/committeeData"
+        );
+
+        const photoResponse = await fetch(
+          "http://127.0.0.1:5000/photoData"
+        );
+
+        const stickerJson = await stickerResponse.json();
+        const committeeJson = await committeeResponse.json();
+        const photoJson = await photoResponse.json();
+
+        const committeeMap = {};
+        const photoMap = {};
+
+        committeeJson.committeeData.forEach((committee) => {
+          committeeMap[committee.stickerId] = committee;
+        });
+
+        photoJson.photoData.forEach((photo) => {
+          photoMap[photo.photoId] = photo;
+        });
+
+        stickerJson.stickerData.forEach((sticker) => {
+          const committee =
+            committeeMap[sticker.stickerId] || {};
+
+          const photo =
+            photoMap[sticker.photoId] || {};
+
+          createStickerFeature({
+            title:
+              sticker.title || "Untitled Sticker",
+
+            description:
+              sticker.description || "No description",
+
+            stickerId:
+              sticker.stickerId || "Unknown",
+
+            image:
+              photo.imagePath || testImage,
+
+            detailDescription:
+              committee.stickerDescription ||
+              "No committee description",
+
+            year:
+              committee.stickerDate || "2026",
+
+            members:
+              committee.committeeMembers ||
+                            "Unknown",
+
+            leus:
+              committee.committeeLeus || "Unknown",
+
+            rubric:
+              committee.committeeRubric || "Unknown",
+
+            coordinates: [
+              parseFloat(sticker.longitude),
+              parseFloat(sticker.latitude),
+            ],
+          });
+        });
+      } catch (error) {
+        console.error("Failed loading stickers:", error);
+      }
+    }
+
+    loadStickersFromDatabase();
+
+    /* ===================================================== */
+    /* CLICK HANDLER */
+    /* ===================================================== */
 
     map.on("click", (event) => {
       const feature = map.forEachFeatureAtPixel(
         event.pixel,
-        (f) => f
+        (feature) => feature
       );
 
       if (!feature) {
@@ -118,36 +197,70 @@ const StickerTracker = () => {
       }
 
       const data = feature.get("stickerData");
-      const coords = feature.getGeometry().getCoordinates();
+
+      const coordinates =
+        feature.getGeometry().getCoordinates();
 
       popupContent.innerHTML = `
         <h3>${data.title}</h3>
-        <p><strong>Description:</strong> ${data.description}</p>
+
+        <p>
+          <strong>Description:</strong>
+          ${data.description}
+        </p>
+
         <p>
           <strong>Type:</strong>
-          <span class="type-link" id="popupTypeLink">${data.stickerId}</span>
+          <span class="type-link" id="popupTypeLink">
+            ${data.stickerId}
+          </span>
         </p>
-        ${data.image}
+
+        <img
+          src="${data.image}"
+          class="popup-image"
+                    id="popupStickerImage"
+        />
       `;
 
-      popupOverlay.setPosition(coords);
+      popupOverlay.setPosition(coordinates);
 
       setTimeout(() => {
-        const typeLink = document.getElementById("popupTypeLink");
-        const popupImage = document.getElementById("popupStickerImage");
+        const typeLink =
+          document.getElementById("popupTypeLink");
+
+        const popupImage =
+          document.getElementById("popupStickerImage");
 
         if (typeLink) {
           typeLink.onclick = () => {
-            document.getElementById("detailName").textContent = data.title;
-            document.getElementById("detailDescription").textContent =
-              data.detailDescription;
-            document.getElementById("detailYear").textContent = data.year;
-            document.getElementById("detailMembers").textContent =
-              data.members;
-            document.getElementById("detailLeus").textContent = data.leus;
-            document.getElementById("detailRubric").textContent =
-              data.rubric;
-            document.getElementById("detailImage").src = data.image;
+            document.getElementById(
+              "detailName"
+            ).textContent = data.title;
+
+            document.getElementById(
+              "detailDescription"
+            ).textContent = data.detailDescription;
+
+            document.getElementById(
+              "detailYear"
+            ).textContent = data.year;
+
+            document.getElementById(
+              "detailMembers"
+            ).textContent = data.members;
+
+            document.getElementById(
+              "detailLeus"
+            ).textContent = data.leus;
+
+            document.getElementById(
+              "detailRubric"
+            ).textContent = data.rubric;
+
+            document.getElementById(
+              "detailImage"
+            ).src = data.image;
 
             document.getElementById(
               "stickerDetailOverlay"
@@ -157,8 +270,10 @@ const StickerTracker = () => {
 
         if (popupImage) {
           popupImage.onclick = () => {
-            document.getElementById("largeOverlayImage").src =
-              data.image;
+            document.getElementById(
+              "largeOverlayImage"
+            ).src = data.image;
+
             document.getElementById(
               "largeImageOverlay"
             ).style.display = "flex";
@@ -167,8 +282,10 @@ const StickerTracker = () => {
       }, 50);
     });
 
-    /* ================= LOCATION MAP ================= */
-
+    /* ===================================================== */
+    /* LOCATION MAP */
+    /* ===================================================== */
+    
     const locationSource = new VectorSource();
 
     const locationLayer = new VectorLayer({
@@ -178,7 +295,9 @@ const StickerTracker = () => {
     const locationMap = new Map({
       target: locationMapRef.current,
       layers: [
-        new TileLayer({ source: new OSM() }),
+        new TileLayer({
+          source: new OSM(),
+        }),
         locationLayer,
       ],
       view: new View({
@@ -189,7 +308,9 @@ const StickerTracker = () => {
 
     locationMap.on("click", (event) => {
       locationSource.clear();
-      selectedCoordinates = toLonLat(event.coordinate);
+
+      selectedCoordinates =
+        toLonLat(event.coordinate);
 
       const marker = new Feature({
         geometry: new Point(event.coordinate),
@@ -197,9 +318,11 @@ const StickerTracker = () => {
 
       marker.setStyle(
         new Style({
-          image: new CircleStyle({
-            radius: 8,
-            fill: new Fill({ color: "#22c55e" }),
+          image: new CircleStyle({          
+                        radius: 8,
+            fill: new Fill({
+              color: "#22c55e",
+            }),
             stroke: new Stroke({
               color: "#ffffff",
               width: 2,
@@ -211,78 +334,228 @@ const StickerTracker = () => {
       locationSource.addFeature(marker);
     });
 
-    /* ================= UI ================= */
+    /* ===================================================== */
+    /* SORT BUTTON */
+    /* ===================================================== */  
 
-    document.getElementById("toggleSortDropdown").onclick = () => {
-      const d = document.getElementById("sortDropdown");
-      d.style.display = d.style.display === "flex" ? "none" : "flex";
-    };
+    const toggleSortDropdown =
+      document.getElementById(
+        "toggleSortDropdown"
+      );
 
-    document.getElementById("openStickerOverlay").onclick = () =>
-      (document.getElementById("stickerOverlay").style.display =
-        "flex");
+    if (toggleSortDropdown) {
+      toggleSortDropdown.onclick = () => {
+        const dropdown =
+          document.getElementById(
+            "sortDropdown"
+          );
 
-    document.getElementById("openPictureOverlay").onclick = () =>
-      (document.getElementById("pictureOverlay").style.display =
-        "flex");
+        if (!dropdown) return;
 
-    document.getElementById("openStickerIdOverlay").onclick = () =>
-      (document.getElementById("stickerIdOverlay").style.display =
-        "flex");
-
-    document.getElementById("openLocationOverlay").onclick = () => {
-      document.getElementById("locationOverlay").style.display =
-        "flex";
-      setTimeout(() => locationMap.updateSize(), 100);
-    };
-
-    document.querySelectorAll(".logo-item").forEach((logo) => {
-      logo.onclick = () => {
-        selectedStickerType = logo.textContent;
-        document.getElementById("stickerIdOverlay").style.display =
-          "none";
+        dropdown.style.display =
+          dropdown.style.display === "flex"
+            ? "none"
+            : "flex";
       };
-    });
+    }
 
-    document.getElementById("detailImage").onclick = () => {
-      document.getElementById("largeOverlayImage").src =
-        document.getElementById("detailImage").src;
-      document.getElementById("largeImageOverlay").style.display =
-        "flex";
-    };
+    /* ===================================================== */
+    /* OPEN OVERLAYS */
+    /* ===================================================== */
 
-    document.querySelectorAll("[data-close]").forEach((btn) => {
-      btn.onclick = () => {
-        document.getElementById(btn.dataset.close).style.display =
-          "none";
+    const openStickerOverlay =
+      document.getElementById(
+        "openStickerOverlay"
+      );
+
+    if (openStickerOverlay) {
+      openStickerOverlay.onclick = () => {
+        document.getElementById(
+                    "stickerOverlay"
+        ).style.display = "flex";
       };
-    });
+    }
 
-    document.getElementById("saveStickerBtn").onclick = () => {
-      const title =
-        document.getElementById("titleInput").value ||
-        "Untitled Sticker";
+    const openPictureOverlay =
+      document.getElementById(
+        "openPictureOverlay"
+      );
 
-      const description =
-        document.getElementById("descriptionInput").value ||
-        "No description";
+    if (openPictureOverlay) {
+      openPictureOverlay.onclick = () => {
+        document.getElementById(
+          "pictureOverlay"
+        ).style.display = "flex";
+      };
+    }
 
-      createStickerFeature({
-        title,
-        description,
-        stickerId: selectedStickerType,
-        image:
-          "https://upload.wikimedia.org/wikipedia/commons/3/3f/Placeholder_view_vector.svg",
-        detailDescription: "Detailed info",
-        year: "2026",
-        members: "Placeholder",
-        leus: "Placeholder",
-        rubric: "Placeholder",
-        coordinates: selectedCoordinates,
+    const openStickerIdOverlay =
+      document.getElementById(
+        "openStickerIdOverlay"
+      );
+
+    if (openStickerIdOverlay) {
+      openStickerIdOverlay.onclick = () => {
+        document.getElementById(
+          "stickerIdOverlay"
+        ).style.display = "flex";
+      };
+    }
+
+    const openLocationOverlay =
+      document.getElementById(
+                "openLocationOverlay"
+      );
+
+    if (openLocationOverlay) {
+      openLocationOverlay.onclick = () => {
+        document.getElementById(
+          "locationOverlay"
+        ).style.display = "flex";
+
+        setTimeout(() => {
+          locationMap.updateSize();
+        }, 100);
+      };
+    }
+
+    /* ===================================================== */
+    /* LOGO SELECTION */
+    /* ===================================================== */
+
+    document
+      .querySelectorAll(".logo-item")
+      .forEach((logo) => {
+        logo.onclick = () => {
+          selectedStickerType =
+            logo.textContent;
+
+          document.getElementById(
+            "stickerIdOverlay"
+          ).style.display = "none";
+        };
       });
 
-      document.getElementById("stickerOverlay").style.display =
-        "none";
+    /* ===================================================== */
+        /* LARGE IMAGE OVERLAY */
+    /* ===================================================== */
+
+    const detailImage =
+      document.getElementById("detailImage");
+
+    if (detailImage) {
+      detailImage.onclick = () => {
+        document.getElementById(
+          "largeOverlayImage"
+        ).src = detailImage.src;
+
+        document.getElementById(
+          "largeImageOverlay"
+        ).style.display = "flex";
+      };
+    }
+
+    /* ===================================================== */
+    /* CLOSE BUTTONS */
+    /* ===================================================== */
+
+    document
+      .querySelectorAll("[data-close]")
+      .forEach((button) => {
+        button.onclick = () => {
+          document.getElementById(
+            button.dataset.close
+          ).style.display = "none";
+        };
+      });
+
+    /* ===================================================== */
+    /* SAVE STICKER */
+    /* ===================================================== */
+
+    const saveStickerBtn =
+      document.getElementById(
+        "saveStickerBtn"
+      );
+
+    if (saveStickerBtn) {
+      saveStickerBtn.onclick = async () => {
+        const title =
+          document.getElementById(
+            "titleInput"
+          ).value || "Untitled Sticker";
+
+        const description =
+          document.getElementById(
+            "descriptionInput"
+          ).value || "No description";
+
+        const payload = {
+          user_id: 1,
+          latitude:
+                      selectedCoordinates[1].toString(),
+          longitude:
+            selectedCoordinates[0].toString(),
+          date_picture:
+            new Date().toISOString(),
+          sticker_id: selectedStickerType,
+          title,
+          description,
+        };
+
+        try {
+          const response = await fetch(
+            "http://127.0.0.1:5000/upload_sticker",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(payload),
+            }
+          );
+
+          const result = await response.json();
+
+          if (!response.ok) {
+            console.error(result.message);
+            return;
+          }
+
+          createStickerFeature({
+            title,
+            description,
+            stickerId: selectedStickerType,
+            image: testImage,
+            detailDescription:
+              "Detailed information",
+            year: "2026",
+            members: "Placeholder",
+            leus: "Placeholder",
+            rubric: "Placeholder",
+            coordinates: selectedCoordinates,
+          });
+
+          document.getElementById(
+            "stickerOverlay"
+          ).style.display = "none";
+
+        } catch (error) {
+          console.error(
+            "Upload failed:",
+            error
+          );
+        }
+      };
+    }
+
+    /* ===================================================== */
+        /* CLEANUP */
+    /* ===================================================== */
+
+        return () => {
+      map.setTarget(null);
+      locationMap.setTarget(null);
     };
   }, []);
 
@@ -290,96 +563,334 @@ const StickerTracker = () => {
     <div className="app">
       <div id="map" ref={mapRef}></div>
 
-      <div className="right-controls">
-        <button className="control-btn" id="openStickerOverlay">
-          + Add Sticker
-        </button>
+      {/* ===================================================== */}
+      {/* RIGHT CONTROLS */}
+      {/* ===================================================== */}
 
-        <button className="control-btn" id="toggleSortDropdown">
-          Sort Stickers
-        </button>
+    <div className="right-controls">
+      <button
+        className="control-btn"
+        id="openStickerOverlay"
+      >
+        + Add Sticker
+      </button>
 
-        <div className="dropdown" id="sortDropdown">
-          <label><input type="checkbox" defaultChecked /> Logo A</label>
-          <label><input type="checkbox" defaultChecked /> Logo B</label>
-          <label><input type="checkbox" defaultChecked /> Logo C</label>
-          <label><input type="checkbox" defaultChecked /> Logo D</label>
-        </div>
+      <button
+        className="control-btn"
+        id="toggleSortDropdown"
+      >
+        Sort Stickers
+      </button>
+
+      <div className="dropdown" id="sortDropdown">
+        <label>
+          <input type="checkbox" defaultChecked />
+          Logo A
+        </label>
+
+        <label>
+          <input type="checkbox" defaultChecked />
+          Logo B
+        </label>
+
+        <label>
+          <input type="checkbox" defaultChecked />
+          Logo C
+        </label>
+
+        <label>
+          <input type="checkbox" defaultChecked />
+          Logo D
+        </label>
       </div>
+    </div>
+
+      {/* ===================================================== */}
+      {/* POPUP */}
+      {/* ===================================================== */}
 
       <div id="popup">
-        <div className="popup" id="popupContent"></div>
+        <div
+          className="popup"
+          id="popupContent"
+        ></div>
       </div>
 
-  
-      <div className="overlay" id="stickerOverlay">
+      {/* ===================================================== */}
+      {/* ADD STICKER OVERLAY */}
+      {/* ===================================================== */}
+
+      <div
+        className="overlay"
+        id="stickerOverlay"
+      >
         <div className="overlay-content">
-          <h2>Add Sticker</h2>
-          <button className="close-btn" data-close="stickerOverlay">×</button>
 
-          <input id="titleInput" placeholder="Sticker title" />
-          <textarea id="descriptionInput"></textarea>
+          <div className="overlay-header">
+            <h2>Add Sticker</h2>
 
-          <button id="saveStickerBtn" className="save-btn">
+            <button
+              className="close-btn"
+              data-close="stickerOverlay"
+            >
+              ×
+            </button>
+          </div>
+
+          <div className="form-grid">
+
+            <div className="form-group">
+              <label>Location</label>
+
+              <button
+                className="secondary-btn"
+                id="openLocationOverlay"
+              >
+                Select Location
+              </button>
+            </div>
+
+            <div className="form-group">
+              <label>Sticker Type</label>
+
+              <button
+                className="secondary-btn"
+                id="openStickerIdOverlay"
+              >
+                Select Sticker Type
+              </button>
+            </div>
+
+            <div className="form-group full">
+              <label>Title</label>
+
+              <input
+                id="titleInput"
+                placeholder="Sticker title"
+              />
+            </div>
+
+            <div className="form-group full">
+              <label>Description</label>
+
+              <textarea id="descriptionInput"></textarea>
+            </div>
+
+          </div>
+
+          <div className="secondary-actions">
+            <button
+              id="openPictureOverlay"
+              className="secondary-btn"
+            >
+              Add Picture
+            </button>
+          </div>
+
+          <button
+            id="saveStickerBtn"
+            className="save-btn"
+          >
             Save Sticker
           </button>
+
         </div>
       </div>
 
-      <div className="overlay" id="locationOverlay">
-        <div className="overlay-content">
-          <h2>Select Location</h2>
-          <button className="close-btn" data-close="locationOverlay">×</button>
+      {/* ===================================================== */}
+      {/* LOCATION OVERLAY */}
+      {/* ===================================================== */}
 
-          <div id="locationMap" ref={locationMapRef}></div>
+      <div
+        className="overlay"
+        id="locationOverlay"
+      >
+        <div className="overlay-content">
+
+          <div className="overlay-header">
+            <h2>Select Location</h2>
+
+            <button
+              className="close-btn"
+              data-close="locationOverlay"
+            >
+              ×
+            </button>
+          </div>
+
+          <div
+            id="locationMap"
+            ref={locationMapRef}
+          ></div>
+
         </div>
       </div>
 
-      <div className="overlay" id="pictureOverlay">
+      {/* ===================================================== */}
+      {/* PICTURE OVERLAY */}
+      {/* ===================================================== */}
+
+      <div
+        className="overlay"
+        id="pictureOverlay"
+      >
         <div className="overlay-content">
-          <h2>Add Picture</h2>
-          <button className="close-btn" data-close="pictureOverlay">×</button>
-          <input type="file" multiple accept="image/*" />
+
+          <div className="overlay-header">
+            <h2>Add Picture</h2>
+
+            <button
+              className="close-btn"
+              data-close="pictureOverlay"
+            >
+              ×
+            </button>
+          </div>
+
+          <input
+            type="file"
+            multiple
+            accept="image/*"
+          />
+
         </div>
       </div>
 
-      <div className="overlay" id="stickerIdOverlay">
+      {/* ===================================================== */}
+      {/* STICKER TYPE OVERLAY */}
+      {/* ===================================================== */}
+
+      <div
+        className="overlay"
+        id="stickerIdOverlay"
+      >
         <div className="overlay-content">
-          <h2>Select Logo</h2>
-          <button className="close-btn" data-close="stickerIdOverlay">×</button>
+
+          <div className="overlay-header">
+            <h2>Select Logo</h2>
+
+            <button
+              className="close-btn"
+              data-close="stickerIdOverlay"
+            >
+              ×
+            </button>
+          </div>
 
           <div className="logo-grid">
-            <div className="logo-item">Logo A</div>
-            <div className="logo-item">Logo B</div>
-            <div className="logo-item">Logo C</div>
-            <div className="logo-item">Logo D</div>
+
+            <div className="logo-item">
+              Logo A
+            </div>
+
+            <div className="logo-item">
+              Logo B
+            </div>
+
+            <div className="logo-item">
+              Logo C
+            </div>
+
+            <div className="logo-item">
+              Logo D
+            </div>
+
           </div>
+
         </div>
       </div>
 
-      <div className="overlay" id="stickerDetailOverlay">
+      {/* ===================================================== */}
+      {/* DETAIL OVERLAY */}
+      {/* ===================================================== */}
+
+      <div
+        className="overlay"
+        id="stickerDetailOverlay"
+      >
         <div className="overlay-content">
-          <h2>Sticker Info</h2>
-          <button className="close-btn" data-close="stickerDetailOverlay">×</button>
 
-          <p id="detailName"></p>
-          <p id="detailDescription"></p>
-          <p id="detailYear"></p>
-          <p id="detailMembers"></p>
-          <p id="detailLeus"></p>
-          <p id="detailRubric"></p>
+          <div className="overlay-header">
+            <h2>Sticker Information</h2>
 
-          <img id="detailImage" className="popup-image" />
+            <button
+              className="close-btn"
+              data-close="stickerDetailOverlay"
+            >
+              ×
+            </button>
+          </div>
+
+          <div className="detail-box">
+            <strong>Name:</strong>
+            <p id="detailName"></p>
+          </div>
+
+          <div className="detail-box">
+            <strong>Description:</strong>
+            <p id="detailDescription"></p>
+          </div>
+
+          <div className="detail-box">
+            <strong>Year:</strong>
+            <p id="detailYear"></p>
+          </div>
+
+          <div className="detail-box">
+            <strong>Members:</strong>
+            <p id="detailMembers"></p>
+          </div>
+
+          <div className="detail-box">
+            <strong>Leus:</strong>
+            <p id="detailLeus"></p>
+          </div>
+
+          <div className="detail-box">
+            <strong>Rubric:</strong>
+            <p id="detailRubric"></p>
+          </div>
+
+          <img
+            id="detailImage"
+            className="popup-image"
+            src={testImage}
+            alt="Sticker"
+          />
+
         </div>
       </div>
 
-      <div className="overlay" id="largeImageOverlay">
+      {/* ===================================================== */}
+      {/* LARGE IMAGE OVERLAY */}
+      {/* ===================================================== */}
+
+      <div
+        className="overlay"id="largeImageOverlay"
+      >
         <div className="overlay-content">
-          <h2>Image</h2>
-          <button className="close-btn" data-close="largeImageOverlay">×</button>
-          <img id="largeOverlayImage" className="large-image" />
+
+          <div className="overlay-header">
+            <h2>Sticker Image</h2>
+
+            <button
+              className="close-btn"
+              data-close="largeImageOverlay"
+            >
+              ×
+            </button>
+          </div>
+
+          <img
+            id="largeOverlayImage"
+            className="large-image"
+            src={testImage}
+            alt="Large Sticker"
+          />
+
         </div>
       </div>
+
     </div>
   );
 };
