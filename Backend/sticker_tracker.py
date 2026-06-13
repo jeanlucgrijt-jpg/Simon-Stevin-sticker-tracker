@@ -120,7 +120,10 @@ def upload_sticker():
     latitude = data.get("latitude")
     longitude = data.get("longitude")
     try:
-        date_picture = normalize_picture_date(data.get("date_picture"))
+        date_picture = (
+            normalize_picture_date(data.get("date_picture"))
+            or date.today().isoformat()
+        )
     except ValueError as error:
         return jsonify({"message": str(error)}), 400
     sticker_id = data.get("sticker_id")
