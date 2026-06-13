@@ -2,7 +2,241 @@
   "hash": "9e1956d4",
   "configHash": "9df7b107",
   "lockfileHash": "776bf980",
-  "browserHash": "d6f80961",
-  "optimized": {},
-  "chunks": {}
+  "browserHash": "14527983",
+  "optimized": {
+    "ol/Feature": {
+      "src": "../../node_modules/ol/Feature.js",
+      "file": "ol_Feature.js",
+      "fileHash": "9964cb66",
+      "needsInterop": false
+    },
+    "ol/Map": {
+      "src": "../../node_modules/ol/Map.js",
+      "file": "ol_Map.js",
+      "fileHash": "4cebea05",
+      "needsInterop": false
+    },
+    "ol/Overlay": {
+      "src": "../../node_modules/ol/Overlay.js",
+      "file": "ol_Overlay.js",
+      "fileHash": "5275ecf7",
+      "needsInterop": false
+    },
+    "ol/View": {
+      "src": "../../node_modules/ol/View.js",
+      "file": "ol_View.js",
+      "fileHash": "ab71116c",
+      "needsInterop": false
+    },
+    "ol/geom/Point": {
+      "src": "../../node_modules/ol/geom/Point.js",
+      "file": "ol_geom_Point.js",
+      "fileHash": "d99a4e25",
+      "needsInterop": false
+    },
+    "ol/layer/Tile": {
+      "src": "../../node_modules/ol/layer/Tile.js",
+      "file": "ol_layer_Tile.js",
+      "fileHash": "fbd30606",
+      "needsInterop": false
+    },
+    "ol/layer/Vector": {
+      "src": "../../node_modules/ol/layer/Vector.js",
+      "file": "ol_layer_Vector.js",
+      "fileHash": "5769f1f8",
+      "needsInterop": false
+    },
+    "ol/proj": {
+      "src": "../../node_modules/ol/proj.js",
+      "file": "ol_proj.js",
+      "fileHash": "6abb0290",
+      "needsInterop": false
+    },
+    "ol/source/OSM": {
+      "src": "../../node_modules/ol/source/OSM.js",
+      "file": "ol_source_OSM.js",
+      "fileHash": "f8f094fd",
+      "needsInterop": false
+    },
+    "ol/source/Vector": {
+      "src": "../../node_modules/ol/source/Vector.js",
+      "file": "ol_source_Vector.js",
+      "fileHash": "c2086f65",
+      "needsInterop": false
+    },
+    "ol/source/XYZ": {
+      "src": "../../node_modules/ol/source/XYZ.js",
+      "file": "ol_source_XYZ.js",
+      "fileHash": "f8f98e29",
+      "needsInterop": false
+    },
+    "ol/style/Circle": {
+      "src": "../../node_modules/ol/style/Circle.js",
+      "file": "ol_style_Circle.js",
+      "fileHash": "9a4a49de",
+      "needsInterop": false
+    },
+    "ol/style/Fill": {
+      "src": "../../node_modules/ol/style/Fill.js",
+      "file": "ol_style_Fill.js",
+      "fileHash": "9580106b",
+      "needsInterop": false
+    },
+    "ol/style/Stroke": {
+      "src": "../../node_modules/ol/style/Stroke.js",
+      "file": "ol_style_Stroke.js",
+      "fileHash": "be6c8f26",
+      "needsInterop": false
+    },
+    "ol/style/Style": {
+      "src": "../../node_modules/ol/style/Style.js",
+      "file": "ol_style_Style.js",
+      "fileHash": "66a829ed",
+      "needsInterop": false
+    },
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "378adcbe",
+      "needsInterop": true
+    },
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "0363cf62",
+      "needsInterop": true
+    },
+    "react/jsx-dev-runtime": {
+      "src": "../../node_modules/react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "ff39ad86",
+      "needsInterop": true
+    }
+  },
+  "chunks": {
+    "BaseVector-OlrPST5o": {
+      "file": "BaseVector-OlrPST5o.js",
+      "isDynamicEntry": false
+    },
+    "Circle-Bz7E0Lcv": {
+      "file": "Circle-Bz7E0Lcv.js",
+      "isDynamicEntry": false
+    },
+    "Collection-B3o8EAYK": {
+      "file": "Collection-B3o8EAYK.js",
+      "isDynamicEntry": false
+    },
+    "Event-qvVWdKDv": {
+      "file": "Event-qvVWdKDv.js",
+      "isDynamicEntry": false
+    },
+    "IconImage-Bd6V8MvJ": {
+      "file": "IconImage-Bd6V8MvJ.js",
+      "isDynamicEntry": false
+    },
+    "Image-CYJjY4aE": {
+      "file": "Image-CYJjY4aE.js",
+      "isDynamicEntry": false
+    },
+    "Layer-DSQbOtiI": {
+      "file": "Layer-DSQbOtiI.js",
+      "isDynamicEntry": false
+    },
+    "MapEventType-BpYz2q2J": {
+      "file": "MapEventType-BpYz2q2J.js",
+      "isDynamicEntry": false
+    },
+    "Object-BrWqLWgw": {
+      "file": "Object-BrWqLWgw.js",
+      "isDynamicEntry": false
+    },
+    "Point-BFE6xgxq": {
+      "file": "Point-BFE6xgxq.js",
+      "isDynamicEntry": false
+    },
+    "Polygon-vzUnvaVs": {
+      "file": "Polygon-vzUnvaVs.js",
+      "isDynamicEntry": false
+    },
+    "Source-CEaCclNU": {
+      "file": "Source-CEaCclNU.js",
+      "isDynamicEntry": false
+    },
+    "Tile-eT7rq3rg": {
+      "file": "Tile-eT7rq3rg.js",
+      "isDynamicEntry": false
+    },
+    "TileState--OC5z7qU": {
+      "file": "TileState--OC5z7qU.js",
+      "isDynamicEntry": false
+    },
+    "View-hjgAAjog": {
+      "file": "View-hjgAAjog.js",
+      "isDynamicEntry": false
+    },
+    "XYZ-DFp0fR2M": {
+      "file": "XYZ-DFp0fR2M.js",
+      "isDynamicEntry": false
+    },
+    "asserts-CxKOIJBj": {
+      "file": "asserts-CxKOIJBj.js",
+      "isDynamicEntry": false
+    },
+    "color-BoK-zr4f": {
+      "file": "color-BoK-zr4f.js",
+      "isDynamicEntry": false
+    },
+    "css-ig1en9db": {
+      "file": "css-ig1en9db.js",
+      "isDynamicEntry": false
+    },
+    "dom-Bq2myMWu": {
+      "file": "dom-Bq2myMWu.js",
+      "isDynamicEntry": false
+    },
+    "easing-BXmlmOaZ": {
+      "file": "easing-BXmlmOaZ.js",
+      "isDynamicEntry": false
+    },
+    "extent-DiYITBej": {
+      "file": "extent-DiYITBej.js",
+      "isDynamicEntry": false
+    },
+    "intersectsextent-BWCKMTZh": {
+      "file": "intersectsextent-BWCKMTZh.js",
+      "isDynamicEntry": false
+    },
+    "math-7aBOSnLj": {
+      "file": "math-7aBOSnLj.js",
+      "isDynamicEntry": false
+    },
+    "obj-BGAAjjDC": {
+      "file": "obj-BGAAjjDC.js",
+      "isDynamicEntry": false
+    },
+    "proj-Cp-L9wJ4": {
+      "file": "proj-Cp-L9wJ4.js",
+      "isDynamicEntry": false
+    },
+    "rbush-Bhmx5x2S": {
+      "file": "rbush-Bhmx5x2S.js",
+      "isDynamicEntry": false
+    },
+    "react-DI8Hxiyg": {
+      "file": "react-DI8Hxiyg.js",
+      "isDynamicEntry": false
+    },
+    "size-Bir6Ad0C": {
+      "file": "size-Bir6Ad0C.js",
+      "isDynamicEntry": false
+    },
+    "transform-C50vLNnX": {
+      "file": "transform-C50vLNnX.js",
+      "isDynamicEntry": false
+    },
+    "util-Dd54OY8-": {
+      "file": "util-Dd54OY8-.js",
+      "isDynamicEntry": false
+    }
+  }
 }
