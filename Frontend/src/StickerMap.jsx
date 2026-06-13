@@ -35,6 +35,7 @@ const StickerTracker = () => {
       let selectedCoordinates = [5.4697, 51.4416];
       let tempCoordinates = selectedCoordinates;
       let selectedStickerType = "Logo A";
+      let selectedImageFile = null;
       let selectedImagePreview = testImage;
       let userLocation =
     [5.4697, 51.4416];
@@ -292,7 +293,15 @@ const StickerTracker = () => {
 
         <p>
           <strong>Date:</strong>
-          ${data.datePicture}
+          ${
+            data.datePicture
+              ? new Date(
+                  data.datePicture
+                )
+                  .toISOString()
+                  .split("T")[0]
+              : "Unknown"
+          }
         </p>
 
         <p>
@@ -435,7 +444,18 @@ const StickerTracker = () => {
 
     if (confirmLocationBtn) {
       confirmLocationBtn.onclick = () => {
-        selectedCoordinates = tempCoordinates;
+        selectedCoordinates =
+          [...tempCoordinates];
+
+        const button =
+          document.getElementById(
+            "openLocationOverlay"
+          );
+
+        if (button) {
+          button.textContent =
+            "Change Location";
+        }
 
         document.getElementById(
           "locationOverlay"
@@ -454,11 +474,39 @@ const StickerTracker = () => {
 
         if (!file) return;
 
+        selectedImageFile = file;
+
+        const allowedTypes = [
+          "image/jpeg",
+          "image/png",
+          "image/heic",
+          "image/heif"
+        ];
+
+        if (!allowedTypes.includes(file.type)) {
+          alert(
+            "Only JPG, JPEG, PNG, HEIC and HEIF files are allowed."
+          );
+
+          event.target.value = "";
+          return;
+        }
+
         const reader = new FileReader();
 
         reader.onload = (loadEvent) => {
           selectedImagePreview =
             loadEvent.target.result;
+
+          const pictureButton =
+            document.getElementById(
+              "openPictureOverlay"
+            );
+
+          if (pictureButton) {
+            pictureButton.textContent =
+              "Change Picture";
+          }
 
           const preview =
             document.getElementById(
@@ -577,30 +625,82 @@ const StickerTracker = () => {
     }
 
     function updateStickerVisibility() {
-      const logoA =
-        document.querySelector(
-          'input[data-type="Logo A"]'
-        )?.checked;
 
-      const logoB =
-        document.querySelector(
-          'input[data-type="Logo B"]'
-        )?.checked;
+      const enabledTypes = [];
 
-      stickerSource.getFeatures()
+      document
+        .querySelectorAll(
+          "#sortDropdown input"
+        )
+        .forEach((checkbox) => {
+
+          if (checkbox.checked) {
+            enabledTypes.push(
+              checkbox.dataset.type
+            );
+          }
+        });
+
+      stickerSource
+        .getFeatures()
         .forEach((feature) => {
 
           const type =
-            feature.get("stickerType");
+            feature.get(
+              "stickerType"
+            );
+
+          const data =
+            feature.get(
+              "stickerData"
+            );
+
+          if (!data) return;
 
           if (
-            (type === "Logo A" && !logoA) ||
-            (type === "Logo B" && !logoB)
+            enabledTypes.includes(type)
           ) {
-            feature.setStyle(null);
+
+            feature.setStyle(
+              new Style({
+                image:
+                  new CircleStyle({
+                    radius: 8,
+                    fill:
+                      new Fill({
+                        color:
+                          "#38bdf8",
+                      }),
+                    stroke:
+                      new Stroke({
+                        color:
+                          "#ffffff",
+                        width: 2,
+                      }),
+                  }),
+              })
+            );
+
+          } else {
+
+            feature.setStyle(
+              new Style({})
+            );
           }
         });
     }
+
+    document
+      .querySelectorAll(
+        "#sortDropdown input"
+      )
+      .forEach((checkbox) => {
+
+        checkbox.addEventListener(
+          "change",
+          updateStickerVisibility
+        );
+      });
 
 
     /* ===================================================== */
@@ -615,8 +715,24 @@ const StickerTracker = () => {
     if (openStickerOverlay) {
       openStickerOverlay.onclick = () => {
         document.getElementById(
-                    "stickerOverlay"
+          "stickerOverlay"
         ).style.display = "flex";
+
+        const dateInput =
+          document.getElementById(
+            "datePictureInput"
+          );
+
+        if (
+          dateInput &&
+          !dateInput.value
+        ) {
+          dateInput.value =
+            new Date()
+              .toISOString()
+              .split("T")[0];
+        }
+
       };
     }
 
@@ -671,8 +787,19 @@ const StickerTracker = () => {
       .querySelectorAll(".logo-item")
       .forEach((logo) => {
         logo.onclick = () => {
+
           selectedStickerType =
             logo.textContent;
+
+          const button =
+            document.getElementById(
+              "openStickerIdOverlay"
+            );
+
+          if (button) {
+            button.textContent =
+              selectedStickerType;
+          }
 
           document.getElementById(
             "stickerIdOverlay"
@@ -877,7 +1004,7 @@ const StickerTracker = () => {
         <label>
           <input 
           type="checkbox" 
-          data-type="logo A"
+          data-type="Logo A"
           defaultChecked 
         />
           Logo A
@@ -1094,7 +1221,7 @@ const StickerTracker = () => {
           <input
             id="pictureInput"
             type="file"
-            accept="image/*"
+            accept=".jpg,.jpeg,.png,.heic,.heif"
           />
 
           <button

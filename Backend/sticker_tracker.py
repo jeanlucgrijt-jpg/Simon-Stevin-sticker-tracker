@@ -12,13 +12,21 @@ register_heif_opener()
 # UNIQUE STICKER ROUTE
 # ==========================================================
 
-@app.route(
-    "/stickers/<path:filename>"
+BASE_DIR = os.path.dirname(
+    os.path.abspath(__file__)
 )
-def serve_sticker(filename):
 
+STICKER_FOLDER = os.path.join(
+    BASE_DIR,
+    "..",
+    "pictures_site",
+    "stickers"
+)
+
+@app.route("/stickers/<path:filename>")
+def serve_sticker(filename):
     return send_from_directory(
-        "../pictures_site/stickers",
+        STICKER_FOLDER,
         filename
     )
 
@@ -163,8 +171,12 @@ def upload_photo_file():
         }), 400
 
     try:
+        BASE_DIR = os.path.dirname(
+            os.path.abspath(__file__)
+        )
 
         save_folder = os.path.join(
+            BASE_DIR,
             "..",
             "pictures_site",
             "stickers"
