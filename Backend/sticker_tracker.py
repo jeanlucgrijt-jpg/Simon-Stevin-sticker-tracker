@@ -1,6 +1,26 @@
-from flask import request, jsonify
+from flask import request, jsonify, send_from_directory
 from config import app, db
 from models import stickerData, committeeData, photoData
+from PIL import Image
+from pillow_heif import register_heif_opener
+import os
+
+register_heif_opener()
+
+
+# ==========================================================
+# UNIQUE STICKER ROUTE
+# ==========================================================
+
+@app.route(
+    "/stickers/<path:filename>"
+)
+def serve_sticker(filename):
+
+    return send_from_directory(
+        "../pictures_site/stickers",
+        filename
+    )
 
 
 # ==========================================================
@@ -125,22 +145,83 @@ def upload_committee():
         return jsonify({"message": str(e)}), 400
 
 
-@app.route("/upload_photo", methods=["POST"])
-def upload_photo():
-    data = request.get_json()
+@app.route("/upload_photo_file", methods=["POST"])
+def upload_photo_file():
 
-    photo = photoData(
-        photo_id=data.get("photo_id"),
-        image_path=data.get("image_path"),
-    )
+    photo_id = request.form.get("photo_id")
+
+    uploaded_file = request.files.get("image")
+
+    if not photo_id:
+        return jsonify({
+            "message": "Missing photo_id"
+        }), 400
+
+    if not uploaded_file:
+        return jsonify({
+            "message": "No image uploaded"
+        }), 400
 
     try:
-        db.session.add(photo)
+
+        save_folder = os.path.join(
+            "..",
+            "pictures_site",
+            "stickers"
+        )
+
+        os.makedirs(save_folder, exist_ok=True)
+
+        jpeg_filename = f"{photo_id}.JPEG"
+
+        save_path = os.path.join(
+            save_folder,
+            jpeg_filename
+        )
+
+        image = Image.open(uploaded_file)
+
+        if image.mode != "RGB":
+            image = image.convert("RGB")
+
+        image.save(
+            save_path,
+            "JPEG",
+            quality=95
+        )
+
+        existing_photo = photoData.query.get(
+            int(photo_id)
+        )
+
+        if existing_photo:
+
+            existing_photo.image_path = (
+                f"stickers/{jpeg_filename}"
+            )
+
+        else:
+
+            photo = photoData(
+                photo_id=int(photo_id),
+                image_path=f"stickers/{jpeg_filename}"
+            )
+
+            db.session.add(photo)
+
         db.session.commit()
-        return jsonify({"message": "Photo added!"}), 201
+
+        return jsonify({
+            "message": "Image uploaded",
+            "image_path":
+                f"stickers/{jpeg_filename}"
+        }), 201
 
     except Exception as e:
-        return jsonify({"message": str(e)}), 400
+
+        return jsonify({
+            "message": str(e)
+        }), 500
 
 
 # ==========================================================

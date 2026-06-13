@@ -23,7 +23,7 @@ import Fill from "ol/style/Fill";
 import Stroke from "ol/style/Stroke";
 import CircleStyle from "ol/style/Circle";
 
-import testImage from "../../pictures_site/test.png";
+import testImage from "../../pictures_site/native/test.png";
 
 const StickerTracker = () => {
   const mapRef = useRef(null);
@@ -145,6 +145,8 @@ const StickerTracker = () => {
         stickerData: data,
       });
 
+      feature.set("stickerType", data.stickerId);
+
       feature.setStyle(
         new Style({
           image: new CircleStyle({
@@ -211,6 +213,10 @@ const StickerTracker = () => {
             title:
               sticker.title || "Untitled Sticker",
 
+            datePicture:
+              sticker.datePicture ||
+              sticker.date_picture,
+
             description:
               sticker.description || "No description",
 
@@ -218,7 +224,9 @@ const StickerTracker = () => {
               sticker.stickerId || "Unknown",
 
             image:
-              photo.imagePath || testImage,
+              photo.imagePath
+                  ? `http://127.0.0.1:5000/${photo.imagePath}`
+                  : testImage,
 
             detailDescription:
               committee.stickerDescription ||
@@ -281,6 +289,11 @@ const StickerTracker = () => {
 
       popupContent.innerHTML = `
         <h3>${data.title}</h3>
+
+        <p>
+          <strong>Date:</strong>
+          ${data.datePicture}
+        </p>
 
         <p>
           <strong>Description:</strong>
@@ -449,8 +462,21 @@ const StickerTracker = () => {
 
           const preview =
             document.getElementById(
-              "picturePreview"
+              "currentStickerPreview"
             );
+
+          preview.onclick = () => {
+
+            document.getElementById(
+              "largeOverlayImage"
+            ).src =
+              preview.src;
+
+            document.getElementById(
+              "largeImageOverlay"
+            ).style.display =
+              "flex";
+          };
 
           const stickerPreview =
             document.getElementById(
@@ -487,6 +513,44 @@ const StickerTracker = () => {
       };
     }
 
+    const pickMyLocationBtn =
+      document.getElementById(
+        "pickMyLocationBtn"
+      );
+
+    if (pickMyLocationBtn) {
+
+      pickMyLocationBtn.onclick = () => {
+
+        selectedCoordinates =
+          [...userLocation];
+
+        locationSource.clear();
+
+        const marker =
+          new Feature({
+            geometry:
+              new Point(
+                fromLonLat(userLocation)
+              ),
+          });
+
+        locationSource.addFeature(
+          marker
+        );
+
+        locationMap
+          .getView()
+          .animate({
+            center:
+              fromLonLat(
+                userLocation
+              ),
+            zoom: 15,
+          });
+      };
+    }
+
     /* ===================================================== */
     /* SORT BUTTON */
     /* ===================================================== */  
@@ -511,6 +575,33 @@ const StickerTracker = () => {
             : "flex";
       };
     }
+
+    function updateStickerVisibility() {
+      const logoA =
+        document.querySelector(
+          'input[data-type="Logo A"]'
+        )?.checked;
+
+      const logoB =
+        document.querySelector(
+          'input[data-type="Logo B"]'
+        )?.checked;
+
+      stickerSource.getFeatures()
+        .forEach((feature) => {
+
+          const type =
+            feature.get("stickerType");
+
+          if (
+            (type === "Logo A" && !logoA) ||
+            (type === "Logo B" && !logoB)
+          ) {
+            feature.setStyle(null);
+          }
+        });
+    }
+
 
     /* ===================================================== */
     /* OPEN OVERLAYS */
@@ -681,6 +772,39 @@ const StickerTracker = () => {
             return;
           }
 
+          if (selectedImageFile) {
+
+            const imageForm =
+              new FormData();
+
+            imageForm.append(
+              "photo_id",
+              result.photo_id
+            );
+
+            imageForm.append(
+              "image",
+              selectedImageFile
+            );
+
+            const imageResponse =
+              await fetch(
+                "http://127.0.0.1:5000/upload_photo_file",
+                {
+                  method: "POST",
+                  body: imageForm,
+                }
+              );
+
+            const imageResult =
+              await imageResponse.json();
+
+            console.log(
+              "Image upload:",
+              imageResult
+            );
+          }
+
           createStickerFeature({
             title,
             description,
@@ -751,22 +875,38 @@ const StickerTracker = () => {
 
       <div className="dropdown" id="sortDropdown">
         <label>
-          <input type="checkbox" defaultChecked />
+          <input 
+          type="checkbox" 
+          data-type="logo A"
+          defaultChecked 
+        />
           Logo A
         </label>
 
         <label>
-          <input type="checkbox" defaultChecked />
+          <input 
+          type="checkbox" 
+          data-type="Logo B"  
+          defaultChecked 
+        />
           Logo B
         </label>
 
         <label>
-          <input type="checkbox" defaultChecked />
+          <input 
+          type="checkbox" 
+          data-type="Logo C"  
+          defaultChecked 
+        />
           Logo C
         </label>
 
         <label>
-          <input type="checkbox" defaultChecked />
+          <input 
+          type="checkbox" 
+          data-type="Logo D"  
+          defaultChecked 
+        />
           Logo D
         </label>
       </div>
@@ -905,6 +1045,13 @@ const StickerTracker = () => {
             id="locationMap"
             ref={locationMapRef}
           ></div>
+
+          <button
+            id="pickMyLocationBtn"
+            className="secondary-btn"
+          >
+            My Location
+          </button>
 
           <button
             id="confirmLocationBtn"
