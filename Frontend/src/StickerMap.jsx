@@ -36,8 +36,35 @@ const StickerTracker = () => {
       let tempCoordinates = selectedCoordinates;
       let selectedStickerType = "Logo A";
       let selectedImagePreview = testImage;
+      let selectedImageFile = null;
       let userLocation =
     [5.4697, 51.4416];
+      const allowedImageExtensions =
+        [".png", ".jpeg", ".jpg", ".heif", ".heic"];
+      const stickerMarkerStyle = new Style({
+        image: new CircleStyle({
+          radius: 8,
+          fill: new Fill({
+            color: "#38bdf8",
+          }),
+          stroke: new Stroke({
+            color: "#ffffff",
+            width: 2,
+          }),
+        }),
+      });
+      const hiddenStickerStyle = new Style({});
+
+      function formatPictureDate(value) {
+        if (!value || typeof value !== "string") {
+          return "Unknown";
+        }
+
+        const dateOnly = value.slice(0, 10);
+        return /^\d{4}-\d{2}-\d{2}$/.test(dateOnly)
+          ? dateOnly
+          : "Unknown";
+      }
 
   navigator.geolocation
     .getCurrentPosition(
@@ -147,20 +174,7 @@ const StickerTracker = () => {
 
       feature.set("stickerType", data.stickerId);
 
-      feature.setStyle(
-        new Style({
-          image: new CircleStyle({
-            radius: 8,
-            fill: new Fill({
-              color: "#38bdf8",
-            }),
-            stroke: new Stroke({
-              color: "#ffffff",
-              width: 2,
-            }),
-          }),
-        })
-      );
+      feature.setStyle(stickerMarkerStyle);
 
       stickerSource.addFeature(feature);
       return feature;
@@ -214,8 +228,10 @@ const StickerTracker = () => {
               sticker.title || "Untitled Sticker",
 
             datePicture:
-              sticker.datePicture ||
-              sticker.date_picture,
+              formatPictureDate(
+                sticker.datePicture ||
+                sticker.date_picture
+              ),
 
             description:
               sticker.description || "No description",
@@ -254,6 +270,8 @@ const StickerTracker = () => {
             ],
           });
         });
+
+        updateStickerVisibility();
       } catch (error) {
         console.error("Failed loading stickers:", error);
       }
@@ -292,7 +310,7 @@ const StickerTracker = () => {
 
         <p>
           <strong>Date:</strong>
-          ${data.datePicture}
+          ${formatPictureDate(data.datePicture)}
         </p>
 
         <p>
@@ -435,11 +453,15 @@ const StickerTracker = () => {
 
     if (confirmLocationBtn) {
       confirmLocationBtn.onclick = () => {
-        selectedCoordinates = tempCoordinates;
+        selectedCoordinates = [...tempCoordinates];
 
         document.getElementById(
           "locationOverlay"
         ).style.display = "none";
+
+        document.getElementById(
+          "openLocationOverlay"
+        ).textContent = "Change Location";
       };
     }
 
@@ -454,6 +476,20 @@ const StickerTracker = () => {
 
         if (!file) return;
 
+        const extension = file.name
+          .slice(file.name.lastIndexOf("."))
+          .toLowerCase();
+
+        if (!allowedImageExtensions.includes(extension)) {
+          event.target.value = "";
+          selectedImageFile = null;
+          window.alert(
+            "Only PNG, JPEG, JPG, HEIF, and HEIC files are allowed."
+          );
+          return;
+        }
+
+        selectedImageFile = file;
         const reader = new FileReader();
 
         reader.onload = (loadEvent) => {
@@ -462,31 +498,29 @@ const StickerTracker = () => {
 
           const preview =
             document.getElementById(
-              "currentStickerPreview"
+              "picturePreview"
             );
 
-          preview.onclick = () => {
+          if (preview) {
+            preview.src = selectedImagePreview;
+            preview.onclick = () => {
 
-            document.getElementById(
-              "largeOverlayImage"
-            ).src =
-              preview.src;
+              document.getElementById(
+                "largeOverlayImage"
+              ).src =
+                preview.src;
 
-            document.getElementById(
-              "largeImageOverlay"
-            ).style.display =
-              "flex";
-          };
+              document.getElementById(
+                "largeImageOverlay"
+              ).style.display =
+                "flex";
+            };
+          }
 
           const stickerPreview =
             document.getElementById(
               "currentStickerPreview"
             );
-
-          if (preview) {
-            preview.src =
-              selectedImagePreview;
-          }
 
           if (stickerPreview) {
             stickerPreview.src =
@@ -495,6 +529,28 @@ const StickerTracker = () => {
         };
 
         reader.readAsDataURL(file);
+      };
+    }
+
+    const confirmPictureBtn =
+      document.getElementById(
+        "confirmPictureBtn"
+      );
+
+    if (confirmPictureBtn) {
+      confirmPictureBtn.onclick = () => {
+        if (!selectedImageFile) {
+          window.alert("Choose a picture first.");
+          return;
+        }
+
+        document.getElementById(
+          "pictureOverlay"
+        ).style.display = "none";
+
+        document.getElementById(
+          "openPictureOverlay"
+        ).textContent = "Change Picture";
       };
     }
 
@@ -522,7 +578,7 @@ const StickerTracker = () => {
 
       pickMyLocationBtn.onclick = () => {
 
-        selectedCoordinates =
+        tempCoordinates =
           [...userLocation];
 
         locationSource.clear();
@@ -577,15 +633,13 @@ const StickerTracker = () => {
     }
 
     function updateStickerVisibility() {
-      const logoA =
-        document.querySelector(
-          'input[data-type="Logo A"]'
-        )?.checked;
-
-      const logoB =
-        document.querySelector(
-          'input[data-type="Logo B"]'
-        )?.checked;
+      const selectedTypes = new Set(
+        Array.from(
+          document.querySelectorAll(
+            '#sortDropdown input[data-type]:checked'
+          )
+        ).map((input) => input.dataset.type)
+      );
 
       stickerSource.getFeatures()
         .forEach((feature) => {
@@ -593,14 +647,25 @@ const StickerTracker = () => {
           const type =
             feature.get("stickerType");
 
-          if (
-            (type === "Logo A" && !logoA) ||
-            (type === "Logo B" && !logoB)
-          ) {
-            feature.setStyle(null);
+          if (!type) {
+            return;
           }
+
+          feature.setStyle(
+            selectedTypes.has(type)
+              ? stickerMarkerStyle
+              : hiddenStickerStyle
+          );
         });
     }
+
+    document
+      .querySelectorAll(
+        '#sortDropdown input[data-type]'
+      )
+      .forEach((checkbox) => {
+        checkbox.onchange = updateStickerVisibility;
+      });
 
 
     /* ===================================================== */
@@ -672,11 +737,15 @@ const StickerTracker = () => {
       .forEach((logo) => {
         logo.onclick = () => {
           selectedStickerType =
-            logo.textContent;
+            logo.textContent.trim();
 
           document.getElementById(
             "stickerIdOverlay"
           ).style.display = "none";
+
+          document.getElementById(
+            "openStickerIdOverlay"
+          ).textContent = selectedStickerType;
         };
       });
 
@@ -799,17 +868,29 @@ const StickerTracker = () => {
             const imageResult =
               await imageResponse.json();
 
-            console.log(
-              "Image upload:",
-              imageResult
-            );
+            if (!imageResponse.ok) {
+              await fetch(
+                `http://127.0.0.1:5000/delete_sticker/${result.photo_id}`,
+                { method: "DELETE" }
+              );
+
+              throw new Error(
+                imageResult.message ||
+                "Image upload failed"
+              );
+            }
+
+            selectedImagePreview =
+              `http://127.0.0.1:5000/${imageResult.image_path}`;
           }
 
           createStickerFeature({
             title,
             description,
+            datePicture:
+              formatPictureDate(datePicture),
             stickerId: selectedStickerType,
-            image: testImage,
+            image: selectedImagePreview,
             detailDescription:
               "Detailed information",
             year: "2026",
@@ -822,6 +903,8 @@ const StickerTracker = () => {
           document.getElementById(
             "stickerOverlay"
           ).style.display = "none";
+
+          updateStickerVisibility();
 
         } catch (error) {
           console.error(
@@ -877,7 +960,7 @@ const StickerTracker = () => {
         <label>
           <input 
           type="checkbox" 
-          data-type="logo A"
+          data-type="Logo A"
           defaultChecked 
         />
           Logo A
@@ -1094,7 +1177,7 @@ const StickerTracker = () => {
           <input
             id="pictureInput"
             type="file"
-            accept="image/*"
+            accept=".png,.jpeg,.jpg,.heif,.heic,image/png,image/jpeg,image/heif,image/heic"
           />
 
           <button

@@ -3,9 +3,40 @@ from config import app, db
 from models import stickerData, committeeData, photoData
 from PIL import Image
 from pillow_heif import register_heif_opener
+from datetime import date
 import os
+import re
 
 register_heif_opener()
+
+ALLOWED_IMAGE_EXTENSIONS = {".png", ".jpeg", ".jpg", ".heif", ".heic"}
+ALLOWED_IMAGE_FORMATS = {"PNG", "JPEG", "HEIF"}
+STICKER_IMAGE_FOLDER = os.path.abspath(
+    os.path.join(app.root_path, "..", "pictures_site", "stickers")
+)
+
+
+def normalize_picture_date(value):
+    if value in (None, ""):
+        return None
+
+    if not isinstance(value, str):
+        raise ValueError("date_picture must use the YYYY-MM-DD format")
+
+    match = re.fullmatch(
+        r"(\d{4}-\d{2}-\d{2})(?:T.*)?",
+        value
+    )
+
+    if not match:
+        raise ValueError("date_picture must use the YYYY-MM-DD format")
+
+    try:
+        return date.fromisoformat(match.group(1)).isoformat()
+    except ValueError as exc:
+        raise ValueError(
+            "date_picture must use the YYYY-MM-DD format"
+        ) from exc
 
 
 # ==========================================================
@@ -18,7 +49,7 @@ register_heif_opener()
 def serve_sticker(filename):
 
     return send_from_directory(
-        "../pictures_site/stickers",
+        STICKER_IMAGE_FOLDER,
         filename
     )
 
@@ -88,7 +119,10 @@ def upload_sticker():
     user_id = data.get("user_id")
     latitude = data.get("latitude")
     longitude = data.get("longitude")
-    date_picture = data.get("date_picture")
+    try:
+        date_picture = normalize_picture_date(data.get("date_picture"))
+    except ValueError as error:
+        return jsonify({"message": str(error)}), 400
     sticker_id = data.get("sticker_id")
     title = data.get("title")
     description = data.get("description")
@@ -162,36 +196,48 @@ def upload_photo_file():
             "message": "No image uploaded"
         }), 400
 
+    extension = os.path.splitext(uploaded_file.filename or "")[1].lower()
+
+    if extension not in ALLOWED_IMAGE_EXTENSIONS:
+        return jsonify({
+            "message": (
+                "Unsupported image type. Use PNG, JPEG, JPG, HEIF, or HEIC."
+            )
+        }), 400
+
     try:
+        photo_id_number = int(photo_id)
+        os.makedirs(STICKER_IMAGE_FOLDER, exist_ok=True)
 
-        save_folder = os.path.join(
-            "..",
-            "pictures_site",
-            "stickers"
-        )
-
-        os.makedirs(save_folder, exist_ok=True)
-
-        jpeg_filename = f"{photo_id}.JPEG"
+        jpeg_filename = f"{photo_id_number}.JPEG"
 
         save_path = os.path.join(
-            save_folder,
+            STICKER_IMAGE_FOLDER,
             jpeg_filename
         )
 
-        image = Image.open(uploaded_file)
+        with Image.open(uploaded_file) as image:
+            image.load()
 
-        if image.mode != "RGB":
-            image = image.convert("RGB")
+            if image.format not in ALLOWED_IMAGE_FORMATS:
+                return jsonify({
+                    "message": (
+                        "Unsupported image type. "
+                        "Use PNG, JPEG, JPG, HEIF, or HEIC."
+                    )
+                }), 400
 
-        image.save(
-            save_path,
-            "JPEG",
-            quality=95
-        )
+            if image.mode != "RGB":
+                image = image.convert("RGB")
+
+            image.save(
+                save_path,
+                "JPEG",
+                quality=95
+            )
 
         existing_photo = photoData.query.get(
-            int(photo_id)
+            photo_id_number
         )
 
         if existing_photo:
@@ -203,7 +249,7 @@ def upload_photo_file():
         else:
 
             photo = photoData(
-                photo_id=int(photo_id),
+                photo_id=photo_id_number,
                 image_path=f"stickers/{jpeg_filename}"
             )
 
@@ -217,8 +263,12 @@ def upload_photo_file():
                 f"stickers/{jpeg_filename}"
         }), 201
 
-    except Exception as e:
+    except (OSError, ValueError) as error:
+        return jsonify({
+            "message": f"Invalid image upload: {error}"
+        }), 400
 
+    except Exception as e:
         return jsonify({
             "message": str(e)
         }), 500
@@ -238,7 +288,12 @@ def update_sticker(photo_id):
 
     sticker.latitude = data.get("latitude", sticker.latitude)
     sticker.longitude = data.get("longitude", sticker.longitude)
-    sticker.date_picture = data.get("date_picture", sticker.date_picture)
+    try:
+        sticker.date_picture = normalize_picture_date(
+            data.get("date_picture", sticker.date_picture)
+        )
+    except ValueError as error:
+        return jsonify({"message": str(error)}), 400
     sticker.sticker_id = data.get("sticker_id", sticker.sticker_id)
     sticker.title = data.get("title", sticker.title)
     sticker.description = data.get("description", sticker.description)
@@ -317,4 +372,4 @@ if __name__ == "__main__":
     with app.app_context():
         db.create_all()
 
-    app.run(debug=True)    
+    app.run(debug=True)
