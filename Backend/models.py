@@ -21,7 +21,7 @@ class stickerData(db.Model):
             "photoId": self.photo_id,
             "userId": self.user_id,
             "latitude": self.latitude,
-            "longtidue": self.longitude,
+            "longitude": self.longitude,
             "datePicture": self.date_picture,
             "dateUploaded": self.date_uploaded,
             "stickerId": self.sticker_id,
