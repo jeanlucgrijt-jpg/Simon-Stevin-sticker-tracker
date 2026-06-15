@@ -37,6 +37,8 @@ const StickerTracker = () => {
       let selectedStickerType = "Logo A";
       let selectedImageFile = null;
       let selectedImagePreview = testImage;
+      let tempImageFile = null;
+      let tempImagePreview = null;
       let userLocation =
     [5.4697, 51.4416];
 
@@ -474,7 +476,7 @@ const StickerTracker = () => {
 
         if (!file) return;
 
-        selectedImageFile = file;
+        tempImageFile = file;
 
         const allowedTypes = [
           "image/jpeg",
@@ -495,18 +497,8 @@ const StickerTracker = () => {
         const reader = new FileReader();
 
         reader.onload = (loadEvent) => {
-          selectedImagePreview =
+          tempImagePreview =
             loadEvent.target.result;
-
-          const pictureButton =
-            document.getElementById(
-              "openPictureOverlay"
-            );
-
-          if (pictureButton) {
-            pictureButton.textContent =
-              "Change Picture";
-          }
 
           const preview =
             document.getElementById(
@@ -531,18 +523,54 @@ const StickerTracker = () => {
               "currentStickerPreview"
             );
 
-          if (preview) {
-            preview.src =
-              selectedImagePreview;
-          }
-
-          if (stickerPreview) {
-            stickerPreview.src =
-              selectedImagePreview;
-          }
         };
 
         reader.readAsDataURL(file);
+      };
+    }
+
+    const confirmPictureBtn =
+      document.getElementById(
+        "confirmPictureBtn"
+      );
+
+    if (confirmPictureBtn) {
+
+      confirmPictureBtn.onclick = () => {
+
+        if (!tempImageFile) {
+          return;
+        }
+
+        selectedImageFile =
+          tempImageFile;
+
+        selectedImagePreview =
+          tempImagePreview;
+
+        const preview =
+          document.getElementById(
+            "currentStickerPreview"
+          );
+
+        if (preview) {
+          preview.src =
+            selectedImagePreview;
+        }
+
+        const pictureButton =
+          document.getElementById(
+            "openPictureOverlay"
+          );
+
+        if (pictureButton) {
+          pictureButton.textContent =
+            "Change Picture";
+        }
+
+        document.getElementById(
+          "pictureOverlay"
+        ).style.display = "none";
       };
     }
 
