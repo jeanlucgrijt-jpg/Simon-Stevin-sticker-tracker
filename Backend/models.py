@@ -38,7 +38,6 @@ class stickerData(db.Model):
 class committeeData(db.Model):
     sticker_id = db.Column(db.String(50), db.ForeignKey('sticker_data.sticker_id'), primary_key=True)
     sticker_name = db.Column(db.String(50), unique=False, nullable=False)
-    sticker_description = db.Column(db.String(50), unique=False, nullable=True)
     sticker_date = db.Column(db.Date, unique=False, nullable=True)
     committee_members = db.Column(db.String(255), unique=False, nullable=False)
     committe_leus = db.Column(db.String(50), unique=False, nullable=False)
@@ -49,7 +48,6 @@ class committeeData(db.Model):
         return{
             "stickerId": self.sticker_id,
             "stickerName": self.sticker_name,
-            "stickerDescription": self.sticker_description,
             "stickerDate": self.sticker_date,
             "committeeMembers": self.committee_members,
             "committeeLeus": self.committe_leus,

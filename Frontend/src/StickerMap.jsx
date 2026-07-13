@@ -22,25 +22,83 @@ import Style from "ol/style/Style";
 import Fill from "ol/style/Fill";
 import Stroke from "ol/style/Stroke";
 import CircleStyle from "ol/style/Circle";
-
-import testImage from "../../pictures_site/native/test.png";
+import images from "./assets";
 
 const StickerTracker = () => {
   const mapRef = useRef(null);
   const locationMapRef = useRef(null);
   const popupRef = useRef(null);
   const popupContentRef = useRef(null);
+  const DEFAULT_PREVIEW_IMAGE = images.photoPreview;
 
   useEffect(() => {
       let selectedCoordinates = [5.4697, 51.4416];
       let tempCoordinates = selectedCoordinates;
-      let selectedStickerType = "Logo A";
+      let selectedStickerType = null;
       let selectedImageFile = null;
-      let selectedImagePreview = testImage;
+      let selectedImagePreview = null;
       let tempImageFile = null;
       let tempImagePreview = null;
-      let userLocation =
-    [5.4697, 51.4416];
+      let userLocation = [5.489347, 51.447816];
+
+      function resetStickerForm() {
+        selectedCoordinates = [...userLocation];
+        tempCoordinates = [...userLocation];
+
+        selectedStickerType = null;
+
+        selectedImageFile = null;
+        selectedImagePreview = null;
+        tempImageFile = null;
+        tempImagePreview = null;
+
+        document.getElementById("titleInput").value = "";
+        document.getElementById("descriptionInput").value = "";
+
+        const dateInput = document.getElementById("datePictureInput");
+
+        if (dateInput) {
+          dateInput.value = new Date()
+            .toISOString()
+            .split("T")[0];
+        }
+
+        const preview =
+          document.getElementById("currentStickerPreview");
+
+        if (preview) {
+          preview.src = DEFAULT_PREVIEW_IMAGE;
+        }
+
+        const pictureInput =
+          document.getElementById("pictureInput");
+
+        if (pictureInput) {
+          pictureInput.value = "";
+        }
+
+        const stickerButton =
+          document.getElementById(
+            "openStickerIdOverlay"
+          );
+
+        if (stickerButton) {
+          stickerButton.textContent =
+            "Select Sticker Type";
+        }
+
+        const locationButton =
+          document.getElementById(
+            "openLocationOverlay"
+          );
+
+        if (locationButton) {
+          locationButton.textContent =
+            "Select Location";
+        }
+
+        locationSource.clear();
+      }
 
   navigator.geolocation
     .getCurrentPosition(
@@ -229,11 +287,7 @@ const StickerTracker = () => {
             image:
               photo.imagePath
                   ? `http://127.0.0.1:5000/${photo.imagePath}`
-                  : testImage,
-
-            detailDescription:
-              committee.stickerDescription ||
-              "No committee description",
+                  : images.joost,
 
             year:
               committee.stickerDate || "2026",
@@ -654,69 +708,97 @@ const StickerTracker = () => {
 
     function updateStickerVisibility() {
 
-      const enabledTypes = [];
-
-      document
-        .querySelectorAll(
-          "#sortDropdown input"
+      const enabledTypes = [
+        ...document.querySelectorAll(
+          '#sortDropdown input[data-type]:checked'
         )
-        .forEach((checkbox) => {
+      ].map(cb => cb.dataset.type);
 
-          if (checkbox.checked) {
-            enabledTypes.push(
-              checkbox.dataset.type
-            );
-          }
-        });
+      console.log("Enabled:", enabledTypes);
 
       stickerSource
         .getFeatures()
         .forEach((feature) => {
 
           const type =
-            feature.get(
-              "stickerType"
-            );
+            feature.get("stickerType");
 
           const data =
-            feature.get(
-              "stickerData"
-            );
+            feature.get("stickerData");
 
           if (!data) return;
 
-          if (
-            enabledTypes.includes(type)
-          ) {
+          if (enabledTypes.includes(type)) {
 
             feature.setStyle(
               new Style({
-                image:
-                  new CircleStyle({
-                    radius: 8,
-                    fill:
-                      new Fill({
-                        color:
-                          "#38bdf8",
-                      }),
-                    stroke:
-                      new Stroke({
-                        color:
-                          "#ffffff",
-                        width: 2,
-                      }),
+                image: new CircleStyle({
+                  radius: 8,
+                  fill: new Fill({
+                    color: "#38bdf8",
                   }),
+                  stroke: new Stroke({
+                    color: "#ffffff",
+                    width: 2,
+                  }),
+                }),
               })
             );
 
           } else {
 
             feature.setStyle(
-              new Style({})
+              () => null
             );
+
           }
         });
     }
+
+    const allCheckbox =
+      document.getElementById(
+        "selectAllTypes"
+      );
+
+    const typeCheckboxes =
+      document.querySelectorAll(
+        '#sortDropdown input[data-type]'
+      );
+
+    typeCheckboxes.forEach((checkbox) => {
+
+      checkbox.addEventListener(
+        "change",
+        () => {
+
+          const everyChecked =
+            [...typeCheckboxes].every(
+              cb => cb.checked
+            );
+
+          allCheckbox.checked =
+            everyChecked;
+
+          updateStickerVisibility();
+        }
+      );
+
+    });
+    
+    allCheckbox.addEventListener(
+      "change",
+      () => {
+
+        typeCheckboxes.forEach(
+          (checkbox) => {
+            checkbox.checked =
+              allCheckbox.checked;
+          }
+        );
+
+        updateStickerVisibility();
+      }
+    );
 
     document
       .querySelectorAll(
@@ -964,9 +1046,7 @@ const StickerTracker = () => {
             title,
             description,
             stickerId: selectedStickerType,
-            image: testImage,
-            detailDescription:
-              "Detailed information",
+            image: images.joost,
             year: "2026",
             members: "Placeholder",
             leus: "Placeholder",
@@ -977,6 +1057,8 @@ const StickerTracker = () => {
           document.getElementById(
             "stickerOverlay"
           ).style.display = "none";
+
+          resetStickerForm();
 
         } catch (error) {
           console.error(
@@ -1029,6 +1111,15 @@ const StickerTracker = () => {
       </button>
 
       <div className="dropdown" id="sortDropdown">
+        <label>
+          <input
+            type="checkbox"
+            id="selectAllTypes"
+            defaultChecked
+          />
+          All
+        </label>
+
         <label>
           <input 
           type="checkbox" 
@@ -1152,7 +1243,7 @@ const StickerTracker = () => {
           <img
             id="currentStickerPreview"
             className="popup-image"
-            src={testImage}
+            src={DEFAULT_PREVIEW_IMAGE}
             alt=""
           />
 
@@ -1242,7 +1333,7 @@ const StickerTracker = () => {
           <img
             id="picturePreview"
             className="popup-image"
-            src={testImage}
+            src={DEFAULT_PREVIEW_IMAGE}
             alt=""
           />
 
@@ -1360,7 +1451,7 @@ const StickerTracker = () => {
           <img
             id="detailImage"
             className="popup-image"
-            src={testImage}
+            src={images.joost}
             alt="Sticker"
           />
 
@@ -1390,7 +1481,7 @@ const StickerTracker = () => {
           <img
             id="largeOverlayImage"
             className="large-image"
-            src={testImage}
+            src={images.joost}
             alt="Large Sticker"
           />
 
